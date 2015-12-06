@@ -1,0 +1,5 @@
+{
+    "require": {
+        "rsd/seafile-php-sdk": "dev-master"
+    }
+}
