@@ -275,9 +275,9 @@ class SeafileAPIClient {
      */
 	public function mkdir($path, $dirname) {
 		if($path === "/") {
-			return $this->res["lib"]->mklib($dirname);
+			return $this->res["lib"]->create($dirname);
 		} else {
-			return $this->res["dir"]->mkdir($this->getLibraryFromPath($path), $dirname, $this->stripLibraryFromPath($path), false);
+			return $this->res["dir"]->create($this->getLibraryFromPath($path), $dirname, $this->stripLibraryFromPath($path), false);
 		}
 	}
 
@@ -292,7 +292,7 @@ class SeafileAPIClient {
         if($path === "/") {
             return false;
         } else {
-            return $this->res["dir"]->ren($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path), $newDirname);
+            return $this->res["dir"]->rename($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path), $newDirname);
         }
     }
 
@@ -307,7 +307,7 @@ class SeafileAPIClient {
         if($path === "/") {
             return false;
         } else {
-            return $this->res["file"]->ren($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path), $newFilename);
+            return $this->res["file"]->rename($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path), $newFilename);
         }
     }
 
@@ -321,9 +321,9 @@ class SeafileAPIClient {
 		if($path === "/") {
 			return false;
 		} else if($this->stripLibraryFromPath($path) === "/") { // we only have a library
-			return $this->res["lib"]->rmlib($this->getLibraryIDfromPath($path));
-		} else { // delete a directory
-			return $this->res["dir"]->rmdir($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path));
+			return $this->res["lib"]->remove($this->getLibraryIDfromPath($path));
+		} else { // delete a file or directory
+			return $this->res["multi"]->delete($this->getLibraryFromPath($path), [$this->stripLibraryFromPath($path)]);
 		}
 	}
 
@@ -392,7 +392,7 @@ class SeafileAPIClient {
      * @return mixed
      */
 	public function download($path, $localFilePath) {
-        return $this->res["file"]->downloadFile($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path), $localFilePath);
+        return $this->res["file"]->download($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path), $localFilePath);
 	}
 
     /**
