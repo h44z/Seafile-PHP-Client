@@ -104,6 +104,25 @@ echo "<br><br>MOVING FILE<br>";
 $result = $client->move($path . "/" . $renName, key($lstmp));
 echo "Result" . ($result ? "OK" : "FAIL") . "<br>";
 
+echo "<br><br>GETTING SHARED LINKS<br>";
+$shares = $client->getSharedItems();
+foreach($shares as $share => $sdetail) {
+	printf("%s: %s, %s<br>", $share, $sdetail["type"], $sdetail["link"]);
+}
+
+if(count($shares) > 0) {
+echo "<br><br>REMOVING SHARE<br>";
+reset($shares);
+$share = key($shares);
+$sdet = $shares[$share];
+$result = $client->unshare($sdet["token"]);
+echo "Result" . ($result ? "OK" : "FAIL") . "<br>";
+
+echo "<br><br>CREATING SHARE<br>";
+$share = key($shares);
+$result = $client->share($share, "download", false, 5);
+echo "Result" . ($result ? "OK" : "FAIL") . "<br>";
+}
 
 echo "<br><br>UPLOADING FILE with custom name<br>";
 $custName = ("CustomFile" . time() . ".txt");

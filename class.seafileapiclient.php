@@ -28,6 +28,7 @@ use Seafile\Resource\Directory;
 use Seafile\Resource\File;
 use Seafile\Resource\Library;
 use Seafile\Resource\Multi;
+use Seafile\Resource\Share;
 
 class SeafileAPIClient {
     /**
@@ -124,6 +125,7 @@ class SeafileAPIClient {
 		$this->res["dir"] = new Directory($this->seafcl);
 		$this->res["file"] = new File($this->seafcl);
         $this->res["multi"] = new Multi($this->seafcl);
+		$this->res["share"] = new Share($this->seafcl);
 
 		return $this->seafcl;
 	}
@@ -382,6 +384,73 @@ class SeafileAPIClient {
      */
 	public function upload($path, $localFilePath, $dstFilename = false) {
         return $this->res["file"]->upload($this->getLibraryFromPath($path), $localFilePath, $this->stripLibraryFromPath($path), $dstFilename);
+	}
+
+    /**
+     * Get all shared items.
+     *
+     * @param bool|string $path Filter path
+     * @return array
+     */
+	public function getSharedItems($path = false) {
+		$allShares = $this->res["share"]->getAll();
+
+		$shares = [];
+
+		$libraryID = "";
+		if($path !== false) {
+			$libraryID = $this->getLibraryIDfromPath($path);
+			$path = $this->stripLibraryFromPath($path);
+		}
+
+		foreach($allShares as $share) {
+			// do some filtering
+			if($path !== false) {
+				if($libraryID != "") {
+					if($share->repoId != $libraryID) {
+						continue;
+					}
+					if(dirname($share->path) != $path) {
+						continue;
+					}
+				}
+			}
+
+			$sharePath = "/" . $share->repoId . $share->path;
+			$shares[$sharePath] = [
+				"token" => $share->token,
+				"views" => $share->viewCnt,
+				"type"  => $share->sType,
+				"username" => $share->username,
+				"link"  => $this->res["share"]->getLink($share),
+			];
+		}
+
+		return $shares;
+	}
+
+	/**
+	 * Create a new share by link.
+	 *
+	 * @param string      $path       Path of the file/folder to share
+	 * @param string      $type       "download" or "upload", default is "download"
+	 * @param bool|string $password   A password for the share, false if no password should be set
+	 * @param bool|int    $expiration Number of days after which the link expires,
+	 *                                false if no expiration date should be set
+	 * @return mixed
+	 */
+	public function share($path, $type="download", $password=false, $expire=false) {
+		return $this->res["share"]->create($this->getLibraryFromPath($path), $this->stripLibraryFromPath($path), $type, $password, $expire);
+	}
+
+	/**
+	 * Delete a share.
+	 *
+	 * @param string $token Share token
+	 * @return mixed
+	 */
+	public function unshare($token) {
+		return $this->res["share"]->delete($token);
 	}
 
     /**
